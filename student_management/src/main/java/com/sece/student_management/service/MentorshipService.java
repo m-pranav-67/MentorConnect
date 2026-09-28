@@ -51,7 +51,7 @@ public class MentorshipService {
 
     public List<MentorMatchDTO> getMentorSuggestions(Long studentId) {
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new BusinessException("Student not found"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Student not found"));
 
         Set<InterestTag> studentTags = student.getInterestTags();
         List<Alumni> allAlumni = alumniRepository.findAll();

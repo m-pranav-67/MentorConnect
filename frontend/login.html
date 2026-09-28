@@ -20,19 +20,20 @@
 <div class="card">
     <h2>MentorConnect Login</h2>
     <form id="loginForm">
+        <div id="error-message" style="color: red; display: none; margin-bottom: 10px; text-align: center;"></div>
         <div class="form-group">
             <label>Email</label>
             <input type="email" id="email" required placeholder="user@example.com">
         </div>
         <div class="form-group">
-            <label>Your Numeric ID (Assigned at registration)</label>
-            <input type="number" id="userId" required placeholder="e.g. 1">
+            <label>Password</label>
+            <input type="password" id="password" required placeholder="Your password">
         </div>
         <div class="form-group">
             <label>Role</label>
             <select id="role" required>
-                <option value="Student">Student</option>
-                <option value="Alumni">Alumni</option>
+                <option value="student">Student</option>
+                <option value="alumni">Alumni</option>
             </select>
         </div>
         <button type="submit">Login</button>
@@ -43,24 +44,42 @@
 </div>
 
 <script>
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
         const role = document.getElementById('role').value;
-        const userId = document.getElementById('userId').value;
+        const errorDiv = document.getElementById('error-message');
 
-        // Store basic simulated auth in localStorage
-        localStorage.setItem('userEmail', email);
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('userId', userId);
-        localStorage.setItem('userName', 'User ' + userId); // Mock name
+        try {
+            const response = await fetch('http://localhost:8080/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password, role })
+            });
 
-        alert(`Logged in as ${role} (ID: ${userId})`);
-        
-        if (role === 'Student') {
-            window.location.href = 'student-dashboard.html';
-        } else {
-            window.location.href = 'alumni-dashboard.html';
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('userId', data.id);
+                localStorage.setItem('userName', data.name);
+                localStorage.setItem('userEmail', data.email);
+                localStorage.setItem('userRole', data.role);
+                
+                if (data.role === 'student') {
+                    window.location.href = 'student-dashboard.html';
+                } else if (data.role === 'alumni') {
+                    window.location.href = 'alumni-dashboard.html';
+                }
+            } else {
+                const errorText = await response.text();
+                errorDiv.innerText = errorText || 'Invalid credentials';
+                errorDiv.style.display = 'block';
+            }
+        } catch (err) {
+            errorDiv.innerText = 'Network error';
+            errorDiv.style.display = 'block';
         }
     });
 </script>

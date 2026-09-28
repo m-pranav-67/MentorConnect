@@ -59,8 +59,13 @@
 
 <script>
     window.onload = () => {
-        if (localStorage.getItem('userRole') !== 'Alumni') {
+        if (!localStorage.getItem('userId')) {
             window.location.href = 'login.html';
+            return;
+        }
+        if (localStorage.getItem('userRole') !== 'Alumni' && localStorage.getItem('userRole') !== 'alumni') {
+            window.location.href = 'login.html';
+            return;
         }
         document.getElementById('displayId').innerText = localStorage.getItem('userId');
         document.getElementById('displayName').innerText = localStorage.getItem('userName') || 'N/A';

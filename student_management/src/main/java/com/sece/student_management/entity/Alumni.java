@@ -21,6 +21,9 @@ public class Alumni {
     @Column(unique = true)
     private String email;
 
+    @NotBlank(message = "Password is required")
+    private String password;
+
     @Min(value = 1, message = "Max mentees must be at least 1")
     private int maxMentees;
 
@@ -38,6 +41,8 @@ public class Alumni {
     public void setName(String name) { this.name = name; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public int getMaxMentees() { return maxMentees; }
     public void setMaxMentees(int maxMentees) { this.maxMentees = maxMentees; }
     public Set<InterestTag> getExpertiseTags() { return expertiseTags; }

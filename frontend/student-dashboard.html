@@ -52,8 +52,13 @@
     
     // Load profile
     window.onload = () => {
-        if (localStorage.getItem('userRole') !== 'Student') {
+        if (!localStorage.getItem('userId')) {
             window.location.href = 'login.html';
+            return;
+        }
+        if (localStorage.getItem('userRole') !== 'Student' && localStorage.getItem('userRole') !== 'student') {
+            window.location.href = 'login.html';
+            return;
         }
         document.getElementById('displayId').innerText = studentId;
         document.getElementById('displayName').innerText = localStorage.getItem('userName') || 'N/A';
