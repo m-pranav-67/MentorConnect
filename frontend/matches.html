@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorConnect - Matches</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+        input { flex: 1; padding: 0.75rem; border: 1px solid #dcdde1; border-radius: 6px; }
+        button { padding: 0.75rem 1.5rem; background: #9b59b6; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #8e44ad; }
+        .match-item { padding: 1rem; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .match-info h4 { margin: 0 0 5px 0; color: #333; }
+        .match-info p { margin: 0; font-size: 0.85rem; color: #777; }
+        .connect-btn { background: #e67e22; padding: 0.5rem 1rem; font-size: 0.85rem; }
+        .connect-btn:hover { background: #d35400; }
+        .nav-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+        .nav-links a { color: #3498db; text-decoration: none; margin: 0 5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Find a Mentor</h2>
+    <div class="form-group">
+        <input type="number" id="studentId" placeholder="Enter Student ID" required>
+        <button onclick="findMentors()">Find Mentors</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <div class="nav-links">
+        <a href="alumni.html">Alumni</a> | 
+        <a href="student.html">Student</a> | 
+        <a href="sessions.html">Sessions</a>
+    </div>
+</div>
+
+<script>
+    async function findMentors() {
+        const studentId = document.getElementById('studentId').value;
+        if (!studentId) return alert('Please enter a student ID');
+        
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<p>Loading...</p>';
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/students/${studentId}/matches`);
+            if (response.ok) {
+                const matches = await response.json();
+                if (matches.length === 0) {
+                    resultsDiv.innerHTML = '<p style="text-align:center;color:#777;">No matches found.</p>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML = matches.map(match => `
+                    <div class="match-item">
+                        <div class="match-info">
+                            <h4>${match.mentor.name}</h4>
+                            <p>Shared Tags: ${match.sharedTagsCount} | Max Mentees: ${match.mentor.maxMentees}</p>
+                        </div>
+                        <button class="connect-btn" onclick="createMentorship(${match.mentor.id}, ${studentId})">
+                            Create Mentorship
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                resultsDiv.innerHTML = '';
+                alert('Error fetching matches. Ensure student ID is correct.');
+            }
+        } catch (err) {
+            resultsDiv.innerHTML = '';
+            alert('Failed to connect to backend.');
+        }
+    }
+
+    async function createMentorship(alumniId, studentId) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/mentorship?alumniId=${alumniId}&studentId=${studentId}`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`Success! Mentorship Pair created with ID: ${data.id}`);
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error || 'Could not create pair'}`);
+            }
+        } catch (err) {
+            alert('Failed to connect to backend.');
+        }
+    }
+</script>
+
+</body>
+</html>

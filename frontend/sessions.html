@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorConnect - Sessions</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #2c3e50; margin-top: 0; }
+        h3 { color: #34495e; font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #5a6c7d; font-weight: 500; font-size: 0.9rem; }
+        input { width: 100%; padding: 0.75rem; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 0.75rem; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-create { background: #34495e; } .btn-create:hover { background: #2c3e50; }
+        .btn-complete { background: #27ae60; } .btn-complete:hover { background: #219653; }
+        .nav-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+        .nav-links a { color: #3498db; text-decoration: none; margin: 0 5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Manage Sessions</h2>
+    
+    <!-- Create Session Section -->
+    <h3>Schedule Session</h3>
+    <div class="form-group">
+        <label>Mentorship Pair ID</label>
+        <input type="number" id="pairId" placeholder="e.g. 1">
+    </div>
+    <div class="form-group">
+        <label>Scheduled Date & Time</label>
+        <input type="datetime-local" id="time">
+    </div>
+    <button class="btn-create" onclick="createSession()">Create Session</button>
+
+    <!-- Complete Session Section -->
+    <h3 style="margin-top: 2rem;">Mark as Completed</h3>
+    <div class="form-group">
+        <label>Session ID</label>
+        <input type="number" id="sessionId" placeholder="e.g. 1">
+    </div>
+    <button class="btn-complete" onclick="completeSession()">Mark Complete</button>
+
+    <div class="nav-links">
+        <a href="alumni.html">Alumni</a> | 
+        <a href="student.html">Student</a> | 
+        <a href="matches.html">Matches</a>
+    </div>
+</div>
+
+<script>
+    async function createSession() {
+        const pairId = document.getElementById('pairId').value;
+        const timeStr = document.getElementById('time').value;
+        
+        if (!pairId || !timeStr) return alert("Please fill in both fields");
+
+        const payload = {
+            scheduledTime: timeStr
+        };
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/mentorship/${pairId}/sessions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`Success! Session scheduled with ID: ${data.id}`);
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error || error.message || 'Failed'}`);
+            }
+        } catch (err) {
+            alert('Failed to connect to backend.');
+        }
+    }
+
+    async function completeSession() {
+        const sessionId = document.getElementById('sessionId').value;
+        if (!sessionId) return alert("Please enter a Session ID");
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/sessions/${sessionId}/complete`, {
+                method: 'PUT'
+            });
+
+            if (response.ok) {
+                alert(`Success! Session ${sessionId} marked as complete.`);
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error || error.message || 'Failed'}`);
+            }
+        } catch (err) {
+            alert('Failed to connect to backend.');
+        }
+    }
+</script>
+
+</body>
+</html>
