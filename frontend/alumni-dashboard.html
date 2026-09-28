@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alumni Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-card { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2, h3 { margin-top: 0; color: #2c3e50; }
+        button { padding: 8px 15px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #c0392b; }
+        .action-btn { background: #9b59b6; } .action-btn:hover { background: #8e44ad; }
+        .id-text { font-family: monospace; background: #eee; padding: 2px 5px; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #555; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Alumni (Mentor) Dashboard</h2>
+        <div>
+            <button onclick="window.location.href='session.html'" class="action-btn">Manage Sessions</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <h3>My Profile</h3>
+        <p><strong>Mentor ID:</strong> <span class="id-text" id="displayId"></span></p>
+        <p><strong>Name:</strong> <span id="displayName"></span></p>
+        <p><strong>Email:</strong> <span id="displayEmail"></span></p>
+        <p><strong>Expertise:</strong> <span id="displayTags"></span></p>
+    </div>
+
+    <div class="profile-card">
+        <h3>My Mentorships</h3>
+        <p style="font-size: 0.9em; color: #666;">
+            <em>Note: Fetching mentorships by alumni ID requires a custom GET API in the backend. Since it's not implemented yet in the API, this table represents where the data would load.</em>
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mentorship ID</th>
+                    <th>Student ID</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="mentorshipTable">
+                <tr><td colspan="3" style="text-align:center; color:#888;">(API Endpoint Required)</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    window.onload = () => {
+        if (localStorage.getItem('userRole') !== 'Alumni') {
+            window.location.href = 'login.html';
+        }
+        document.getElementById('displayId').innerText = localStorage.getItem('userId');
+        document.getElementById('displayName').innerText = localStorage.getItem('userName') || 'N/A';
+        document.getElementById('displayEmail').innerText = localStorage.getItem('userEmail') || 'N/A';
+        document.getElementById('displayTags').innerText = localStorage.getItem('userTags') || 'N/A';
+    };
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+</script>
+</body>
+</html>

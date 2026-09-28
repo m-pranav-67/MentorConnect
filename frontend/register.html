@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MentorConnect - Register</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
+        h2 { text-align: center; color: #2c3e50; }
+        .role-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .role-btn { flex: 1; padding: 10px; border: 1px solid #3498db; background: white; color: #3498db; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .role-btn.active { background: #3498db; color: white; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #5a6c7d; font-weight: 500; font-size: 0.9rem; }
+        input { width: 100%; padding: 0.75rem; border: 1px solid #dcdde1; border-radius: 6px; box-sizing: border-box; }
+        button[type="submit"] { width: 100%; padding: 0.75rem; background: #2ecc71; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .alumni-fields { display: none; }
+        .links { text-align: center; margin-top: 15px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>Register Account</h2>
+    
+    <div class="role-selector">
+        <button type="button" class="role-btn active" id="btnStudent" onclick="setRole('Student')">Student</button>
+        <button type="button" class="role-btn" id="btnAlumni" onclick="setRole('Alumni')">Alumni</button>
+    </div>
+
+    <form id="registerForm">
+        <input type="hidden" id="role" value="Student">
+        
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="name" required placeholder="John Doe">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" required placeholder="user@example.com">
+        </div>
+        <div class="form-group">
+            <label id="tagLabel">Interest Tags (comma separated)</label>
+            <input type="text" id="tags" required placeholder="Java, SQL">
+        </div>
+        <div class="form-group alumni-fields">
+            <label>Max Mentees</label>
+            <input type="number" id="maxMentees" min="1" value="2">
+        </div>
+        
+        <button type="submit">Register</button>
+    </form>
+    
+    <div class="links">
+        Already have an account? <a href="login.html">Login here</a>
+    </div>
+</div>
+
+<script>
+    function setRole(role) {
+        document.getElementById('role').value = role;
+        document.getElementById('btnStudent').classList.toggle('active', role === 'Student');
+        document.getElementById('btnAlumni').classList.toggle('active', role === 'Alumni');
+        
+        const isAlumni = role === 'Alumni';
+        document.querySelector('.alumni-fields').style.display = isAlumni ? 'block' : 'none';
+        document.getElementById('tagLabel').innerText = isAlumni ? 'Expertise Tags (comma separated)' : 'Interest Tags (comma separated)';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const role = document.getElementById('role').value;
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const tagsInput = document.getElementById('tags').value;
+        
+        const formattedTags = tagsInput.split(',').map(tag => ({ name: tag.trim() })).filter(tag => tag.name !== "");
+
+        let endpoint = 'http://localhost:8080/api/students';
+        let payload = { name, email, interestTags: formattedTags };
+
+        if (role === 'Alumni') {
+            endpoint = 'http://localhost:8080/api/alumni';
+            payload = { name, email, maxMentees: parseInt(document.getElementById('maxMentees').value), expertiseTags: formattedTags };
+        }
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`✅ SUCCESSFULLY REGISTERED!\n\nYour ${role} ID is: ${data.id}\n\nPlease remember this ID for login.`);
+                
+                // Auto-login logic
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('userId', data.id);
+                localStorage.setItem('userName', name);
+                
+                // Save tags in local storage just for dashboard display since we don't have a GET /user endpoint
+                localStorage.setItem('userTags', tagsInput);
+
+                window.location.href = role === 'Student' ? 'student-dashboard.html' : 'alumni-dashboard.html';
+            } else {
+                const error = await response.json();
+                alert(`Registration failed: ${error.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            alert('Failed to connect to backend API.');
+        }
+    });
+</script>
+</body>
+</html>

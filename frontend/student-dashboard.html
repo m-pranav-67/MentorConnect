@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .profile-card { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .matches-card { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2, h3 { margin-top: 0; color: #2c3e50; }
+        .badge { background: #3498db; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; margin-right: 5px; }
+        .mentor-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; }
+        button { padding: 8px 15px; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #27ae60; }
+        .logout { background: #e74c3c; } .logout:hover { background: #c0392b; }
+        .action-btn { background: #9b59b6; } .action-btn:hover { background: #8e44ad; }
+        .id-text { font-family: monospace; background: #eee; padding: 2px 5px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Student Dashboard</h2>
+        <div>
+            <button onclick="window.location.href='session.html'" class="action-btn">Manage Sessions</button>
+            <button class="logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <h3>My Profile</h3>
+        <p><strong>Student ID:</strong> <span class="id-text" id="displayId"></span></p>
+        <p><strong>Name:</strong> <span id="displayName"></span></p>
+        <p><strong>Email:</strong> <span id="displayEmail"></span></p>
+        <p><strong>Tags:</strong> <span id="displayTags"></span></p>
+    </div>
+
+    <div class="matches-card">
+        <h3>Find Mentors</h3>
+        <button onclick="fetchMatches()" class="action-btn" style="margin-bottom: 15px;">Search for Matches</button>
+        <div id="matchesList">
+            <p style="color: #777;">Click search to find matching mentors.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const studentId = localStorage.getItem('userId');
+    
+    // Load profile
+    window.onload = () => {
+        if (localStorage.getItem('userRole') !== 'Student') {
+            window.location.href = 'login.html';
+        }
+        document.getElementById('displayId').innerText = studentId;
+        document.getElementById('displayName').innerText = localStorage.getItem('userName') || 'N/A';
+        document.getElementById('displayEmail').innerText = localStorage.getItem('userEmail') || 'N/A';
+        document.getElementById('displayTags').innerText = localStorage.getItem('userTags') || 'N/A';
+    };
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    async function fetchMatches() {
+        const matchesList = document.getElementById('matchesList');
+        matchesList.innerHTML = 'Loading...';
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/students/${studentId}/matches`);
+            if (!response.ok) throw new Error("Failed to fetch matches");
+            
+            const matches = await response.json();
+            
+            if (matches.length === 0) {
+                matchesList.innerHTML = '<p>No mentors found with overlapping tags.</p>';
+                return;
+            }
+
+            matchesList.innerHTML = matches.map(match => `
+                <div class="mentor-item">
+                    <div>
+                        <h4>${match.mentor.name} <span style="font-weight:normal; color:#777; font-size: 0.9em;">(Mentor ID: <span class="id-text">${match.mentor.id}</span>)</span></h4>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem;">
+                            Shared Tags: <span class="badge">${match.sharedTagsCount}</span> | 
+                            Max Capacity: ${match.mentor.maxMentees}
+                        </p>
+                    </div>
+                    <button onclick="createMentorship(${match.mentor.id})">Create Mentorship</button>
+                </div>
+            `).join('');
+        } catch (err) {
+            matchesList.innerHTML = '<p style="color:red;">Error fetching matches.</p>';
+        }
+    }
+
+    async function createMentorship(alumniId) {
+        try {
+            const response = await fetch(`http://localhost:8080/api/mentorship?alumniId=${alumniId}&studentId=${studentId}`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                const pair = await response.json();
+                alert(`✅ Mentorship successfully created!\n\nMentorship Pair ID: ${pair.id}\nStatus: ${pair.status}\n\nYou can now use this Mentorship ID to create sessions.`);
+            } else {
+                const err = await response.json();
+                alert(`❌ Failed: ${err.error}`);
+            }
+        } catch (err) {
+            alert('API Connection Error');
+        }
+    }
+</script>
+</body>
+</html>
