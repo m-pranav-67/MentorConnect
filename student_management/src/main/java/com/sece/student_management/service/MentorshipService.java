@@ -91,6 +91,10 @@ public class MentorshipService {
         pair.setStatus(MentorshipStatus.ACTIVE);
         return mentorshipPairRepository.save(pair);
     }
+    
+    public List<MentorshipPair> getStudentMentorships(Long studentId) {
+        return mentorshipPairRepository.findByStudentId(studentId);
+    }
 
     public Session createSession(Long pairId, Session session) {
         MentorshipPair pair = mentorshipPairRepository.findById(pairId)

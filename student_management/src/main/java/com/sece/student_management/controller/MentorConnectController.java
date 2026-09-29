@@ -42,6 +42,11 @@ public class MentorConnectController {
     public ResponseEntity<MentorshipPair> createMentorship(@RequestParam Long alumniId, @RequestParam Long studentId) {
         return ResponseEntity.ok(mentorshipService.createMentorship(alumniId, studentId));
     }
+    
+    @GetMapping("/students/{studentId}/mentorships")
+    public ResponseEntity<List<MentorshipPair>> getStudentMentorships(@PathVariable Long studentId) {
+        return ResponseEntity.ok(mentorshipService.getStudentMentorships(studentId));
+    }
 
     @PostMapping("/mentorship/{pairId}/sessions")
     public ResponseEntity<Session> createSession(@PathVariable Long pairId, @Valid @RequestBody Session session) {

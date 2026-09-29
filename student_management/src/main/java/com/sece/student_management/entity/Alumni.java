@@ -47,4 +47,12 @@ public class Alumni {
     public void setMaxMentees(int maxMentees) { this.maxMentees = maxMentees; }
     public Set<InterestTag> getExpertiseTags() { return expertiseTags; }
     public void setExpertiseTags(Set<InterestTag> expertiseTags) { this.expertiseTags = expertiseTags; }
+    
+    private String companyName;
+    private String role;
+    
+    public String getCompanyName() { return companyName; }
+    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }
